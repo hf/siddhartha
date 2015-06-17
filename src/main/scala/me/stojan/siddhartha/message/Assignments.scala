@@ -22,10 +22,14 @@
 
 package me.stojan.siddhartha.message
 
+import java.util
+import java.util.Collections
+
 import akka.actor.ActorRef
 import me.stojan.siddhartha.keyspace.Key
+import me.stojan.siddhartha.util.Bytes
 
 case class Join()
 case class AskToJoin(siddhartha: ActorRef)
 
-case class Child(keyspace: (Key, Key))
+case class Child(keyspace: (Key, Key), data: util.Map[Key, Bytes] = Collections.emptyMap())

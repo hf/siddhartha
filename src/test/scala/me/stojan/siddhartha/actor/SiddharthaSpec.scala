@@ -22,6 +22,8 @@
 
 package me.stojan.siddhartha.actor
 
+import java.util
+
 import akka.actor.Props
 import akka.testkit.{TestActorRef, TestProbe}
 import me.stojan.siddhartha.keyspace.{Key, Keyspace}
@@ -131,7 +133,17 @@ class SiddharthaSpec extends ActorSystemSpec("SiddharthaSpec") {
 
     sdhProbe.expectMsg(Duration(50, MILLISECONDS), Join())
 
-    sdhProbe.send(childRef, Child(( Key(Bytes(1, 2, 3)), Key(Bytes(4, 5, 6)) )))
+    sdhProbe.send(childRef, Child(( Key(Bytes(1, 2, 3)), Key(Bytes(4, 5, 6)) ), {
+      val map = new util.TreeMap[Key, Bytes]()
+
+      map.put(Key(Bytes(1, 2, 8)), Bytes(1, 2, 8))
+
+      map
+    }))
+
+    sdhProbe.send(childRef, Get(Key(Bytes(1, 2, 8))))
+
+    sdhProbe.expectMsg(Duration(100, MILLISECONDS), Value(Key(Bytes(1, 2, 8)), Some(Bytes(1, 2, 8))))
 
     sdhProbe.send(childRef, Get(Key(Bytes(2, 0, 0))))
 

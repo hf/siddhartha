@@ -30,7 +30,7 @@ import me.stojan.siddhartha.message._
 import me.stojan.siddhartha.util.Bytes
 
 class Siddhartha extends Actor {
-  val map = new util.TreeMap[Key, Bytes]()
+  val map: util.SortedMap[Key, Bytes] = new util.TreeMap[Key, Bytes]()
 
   override def receive: Receive = {
     case Status(ofWhat: String) => sender ! (ofWhat match {
@@ -39,7 +39,12 @@ class Siddhartha extends Actor {
     })
 
     case AskToJoin(siddhartha: ActorRef) => siddhartha ! Join()
-    case Child(keyspace: (Key, Key)) => becomeActive(keyspace, Some(sender), Seq())
+
+    case Child(keyspace: (Key, Key), data: util.Map[Key, Bytes]) =>
+      map.putAll(data)
+
+      becomeActive(keyspace, Some(sender), Seq())
+
     case _ =>
   }
 
@@ -54,8 +59,11 @@ class Siddhartha extends Actor {
 
     case _: Join =>
       val halvedKeyspace = Keyspace.halve(keyspace._1, keyspace._2)
+      val childData = map.subMap(halvedKeyspace._2, halvedKeyspace._3)
 
-      sender ! Child((halvedKeyspace._2, halvedKeyspace._3))
+      sender ! Child((halvedKeyspace._2, halvedKeyspace._3), childData)
+
+      // TODO: Refresh map without childData values once in a while
 
       becomeActive((halvedKeyspace._1, halvedKeyspace._2), parent, children :+ (halvedKeyspace._2, sender))
 
