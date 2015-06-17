@@ -40,24 +40,33 @@ class Siddhartha extends Actor {
     case _ =>
   }
 
-  def active(keyspace: (Key, Key), parent: Option[ActorRef], children: Seq[ActorRef]): Receive = {
+  def active(keyspace: (Key, Key), parent: Option[ActorRef], children: Seq[(Key, ActorRef)]): Receive = {
     case _: Join =>
       val halved = Keyspace.halve(keyspace._1, keyspace._2)
 
       sender ! Child((halved._2, halved._3))
 
-      becomeActive((halved._1, halved._2), parent, children :+ sender)
+      becomeActive((halved._1, halved._2), parent, children :+ (halved._2, sender))
 
     case dht: DHTMessage =>
       if (!Keyspace.within(dht.key, keyspace)) {
         if (dht.key < keyspace._1) {
           parent.foreach(_ forward dht)
         } else {
-          children.foreach(_ forward dht)
+          val responsibleChild = children.find(dht.key >= _._1)
+          
+          require(responsibleChild.nonEmpty)
+
+          responsibleChild.get._2 forward dht
         }
       } else {
         dht match {
-          case Put(key, value) => if (value.isEmpty) { map.remove(key) } else { map.put(key, value.get) }
+          case Put(key, value) => if (value.isEmpty) {
+            map.remove(key)
+          } else {
+            map.put(key, value.get)
+          }
+
           case Get(key) => sender ! Value(key, map.get(key))
         }
       }
@@ -65,7 +74,7 @@ class Siddhartha extends Actor {
     case _ =>
   }
 
-  def becomeActive(keyspace: (Key, Key), parent: Option[ActorRef], children: Seq[ActorRef]): Unit = {
+  def becomeActive(keyspace: (Key, Key), parent: Option[ActorRef], children: Seq[(Key, ActorRef)]): Unit = {
     context.become(active(keyspace, parent, children), true)
     isActive = true
   }

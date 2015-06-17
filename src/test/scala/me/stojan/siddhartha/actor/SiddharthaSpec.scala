@@ -119,8 +119,6 @@ class SiddharthaSpec extends ActorSystemSpec("SiddharthaSpec") {
 
     sdhProbe.expectNoMsg(Duration(100, MILLISECONDS))
     subChildRef.expectMsg(Duration(50, MILLISECONDS), Put(Bytes(0, 199.toByte), Some(Bytes(1, 2, 3))))
-
-
   }
 
   it should "when active, store and retrieve values from its own keyspace" in {
