@@ -22,12 +22,19 @@
 
 package me.stojan.siddhartha
 
+import me.stojan.siddhartha.util._
+
 package object keyspace {
-  implicit def arrayOfBytesToKey(from: Array[Byte]): Key = Key(from)
+
+  implicit def arrayOfBytesToKey(from: Array[Byte]): Key = Bytes(from)
 
   implicit def keyToArrayOfBytes(from: Key): Array[Byte] = from.data
 
-  implicit def keyToBigInt(from: Key): BigInt = BigInt(if (from.data.length < 1) { Array[Byte](0) } else { from.data })
+  implicit def keyToBigInt(from: Key): BigInt = from.data
 
-  implicit def bigIntToKey(from: BigInt): Key = from.toByteArray
+  implicit def bigIntToKey(from: BigInt): Key = bigIntToBytes(from)
+
+  implicit def bytesToKey(from: Bytes): Key = Key(from)
+
+  implicit def keyToBytes(from: Key): Bytes = from.data
 }

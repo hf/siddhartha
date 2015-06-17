@@ -22,10 +22,12 @@
 
 package me.stojan.siddhartha.keyspace
 
+import me.stojan.siddhartha.util._
+
 object Keyspace {
   val bytes = 512 / 8
 
-  lazy val min: Key = Array[Byte](0)
+  lazy val min: Key = Bytes()
   lazy val max: Key = {
     val data = Array.ofDim[Byte](bytes)
 
@@ -33,7 +35,7 @@ object Keyspace {
       data(i) = 0xFF.toByte
     }
 
-    data
+    Bytes(data)
   }
 
   def halve(a: Key, b: Key): (Key, Key, Key) = (a, a + (b - a) / 2, b)

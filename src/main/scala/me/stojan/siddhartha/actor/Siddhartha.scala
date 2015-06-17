@@ -22,15 +22,15 @@
 
 package me.stojan.siddhartha.actor
 
-import akka.actor.Actor.Receive
-import akka.actor.{ActorRef, Actor}
+import akka.actor.{Actor, ActorRef}
 import me.stojan.siddhartha.keyspace.{Key, Keyspace}
 import me.stojan.siddhartha.message._
+import me.stojan.siddhartha.util.Bytes
 
 import scala.collection.mutable
 
 class Siddhartha extends Actor {
-  val map = new mutable.HashMap[Key, Array[Byte]]()
+  val map = new mutable.HashMap[Key, Bytes]()
 
   var isActive = false
 

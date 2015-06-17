@@ -29,7 +29,7 @@ class KeyspaceSpec extends UnitSpec {
   "Keyspace" should "define max and min correctly" in {
     (Keyspace.min `compare` Array[Byte](0)) should be (0)
 
-    Keyspace.max.data.foreach(_ should be (0xFF.toByte))
+    Keyspace.max.data.data.foreach(_ should be (0xFF.toByte))
   }
 
   it should "halve a range" in {

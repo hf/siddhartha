@@ -23,11 +23,11 @@
 package me.stojan.siddhartha.actor
 
 import akka.actor.Props
-import akka.testkit.{TestProbe, TestActors, TestActorRef}
+import akka.testkit.{TestActorRef, TestProbe}
 import me.stojan.siddhartha.keyspace.{Key, Keyspace}
 import me.stojan.siddhartha.message._
-import me.stojan.siddhartha.test.{ActorSystemSpec, UnitSpec}
-import org.scalatest.BeforeAndAfterEach
+import me.stojan.siddhartha.test.ActorSystemSpec
+import me.stojan.siddhartha.util.Bytes
 
 import scala.concurrent.duration._
 
@@ -86,11 +86,11 @@ class SiddharthaSpec extends ActorSystemSpec("SiddharthaSpec") {
 
     sdhProbe.expectMsg(Duration(50, MILLISECONDS), Join())
 
-    sdhProbe.send(childRef, Child(( Key(Array[Byte](0, 0, 0)), Key(Array[Byte](1, 2, 3)) )) )
+    sdhProbe.send(childRef, Child(( Key(Bytes(0, 0, 0)), Key(Bytes(1, 2, 3)) )) )
 
-    childRef ! Get(Key(Array[Byte](2, 0, 0)))
+    childRef ! Get(Key(Bytes(2, 0, 0)))
 
-    sdhProbe.expectMsg(Duration(100, MILLISECONDS), Get(Key(Array[Byte](2, 0, 0))))
+    sdhProbe.expectMsg(Duration(100, MILLISECONDS), Get(Key(Bytes(2, 0, 0))))
   }
 
   it should "when active, store and retrieve values from its own keyspace" in {
@@ -102,19 +102,18 @@ class SiddharthaSpec extends ActorSystemSpec("SiddharthaSpec") {
 
     sdhProbe.expectMsg(Duration(50, MILLISECONDS), Join())
 
-    sdhProbe.send(childRef, Child(( Key(Array[Byte](1, 2, 3)), Key(Array[Byte](4, 5, 6)) )))
+    sdhProbe.send(childRef, Child(( Key(Bytes(1, 2, 3)), Key(Bytes(4, 5, 6)) )))
 
-    sdhProbe.send(childRef, Get(Key(Array[Byte](2, 0, 0))))
+    sdhProbe.send(childRef, Get(Key(Bytes(2, 0, 0))))
 
-    sdhProbe.expectMsg(Duration(100, MILLISECONDS), Value(Key(Array[Byte](2, 0, 0)), None))
+    sdhProbe.expectMsg(Duration(100, MILLISECONDS), Value(Key(Bytes(2, 0, 0)), None))
 
-    sdhProbe.send(childRef, Put(Key(Array[Byte](2, 0, 0)), Some(Array[Byte](4, 5, 6))))
+    sdhProbe.send(childRef, Put(Key(Bytes(2, 0, 0)), Some(Bytes(4, 5, 6))))
 
     sdhProbe.expectNoMsg(Duration(100, MILLISECONDS))
 
-    sdhProbe.send(childRef, Get(Key(Array[Byte](2, 0, 0))))
+    sdhProbe.send(childRef, Get(Key(Bytes(2, 0, 0))))
 
-    // this does not work because Option[Array[Byte]] does not comapre arrays properly
-    // sdhProbe.expectMsg(Duration(100, MILLISECONDS), Value(Key(Array[Byte](2, 0, 0)), Some(Array[Byte](4, 5, 6))))
+    sdhProbe.expectMsg(Duration(100, MILLISECONDS), Value(Key(Bytes(2, 0, 0)), Some(Bytes(4, 5, 6))))
   }
 }

@@ -24,7 +24,7 @@ package me.stojan.siddhartha.test
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
-import org.scalatest.{Matchers, BeforeAndAfterAll, FlatSpecLike}
+import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 
 abstract class ActorSystemSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with FlatSpecLike with Matchers with BeforeAndAfterAll {
   def this(name: String) = this(ActorSystem(name))

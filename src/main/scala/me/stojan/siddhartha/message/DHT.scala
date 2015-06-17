@@ -23,12 +23,13 @@
 package me.stojan.siddhartha.message
 
 import me.stojan.siddhartha.keyspace.Key
+import me.stojan.siddhartha.util.Bytes
 
 sealed trait DHTMessage {
   def key: Key
 }
 
-case class Put(key: Key, value: Option[Array[Byte]]) extends DHTMessage
+case class Put(key: Key, value: Option[Bytes]) extends DHTMessage
 case class Get(key: Key) extends DHTMessage
 
-case class Value(key: Key, value: Option[Array[Byte]])
+case class Value(key: Key, value: Option[Bytes])

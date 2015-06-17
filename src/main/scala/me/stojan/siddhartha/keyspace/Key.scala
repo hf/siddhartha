@@ -1,6 +1,6 @@
 package me.stojan.siddhartha.keyspace
 
-import java.util
+import me.stojan.siddhartha.util.Bytes
 
 /*
  * Copyright (c) 2015 Stojan Dimitrovski
@@ -24,36 +24,6 @@ import java.util
  * THE SOFTWARE.
  */
 
-case class Key(data: Array[Byte]) extends Equals with Ordered[Array[Byte]] with Comparable[Array[Byte]] {
-  override def compare(that: Array[Byte]): Int = {
-    require(that != null)
-
-    val (invert, a, b) = if (data.length >= that.length) { (1, data, that) }
-      else { (-1, that, data) }
-
-    for (i <- 0 until (a.length - b.length)) {
-      if (a(i) != 0) { return invert }
-    }
-
-    for (i <- (a.length - b.length) until a.length) {
-      val comparison = a(i) `compare` b(i - (a.length - b.length))
-      if (comparison != 0) { return comparison * invert }
-    }
-
-    0
-  }
-
-  override def hashCode(): Int = util.Arrays.hashCode(data)
-
-  override def canEqual(that: Any): Boolean = that match {
-    case _: Key => true
-    case _: Array[Byte] => true
-    case _ => false
-  }
-
-  override def equals(that: Any): Boolean = that match {
-    case t: Key => data == t.data || compare(t.data) == 0
-    case t: Array[Byte] => data == t.data || compare(t) == 0
-    case _ => false
-  }
+case class Key(data: Bytes) extends Ordered[Key] {
+  override def compare(that: Key): Int = Bytes.comparator.compare(data, that.data)
 }

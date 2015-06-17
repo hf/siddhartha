@@ -20,29 +20,15 @@
  * THE SOFTWARE.
  */
 
-package me.stojan.siddhartha.keyspace
+package me.stojan.siddhartha
 
-import me.stojan.siddhartha.test.UnitSpec
+package object util {
 
-class KeySpec extends UnitSpec {
+  implicit def bytesToArrayOfBytes(from: Bytes): Array[Byte] = from.data
 
-  "Key" should "contain an array of bytes" in {
-    val key = Key(Array[Byte](1, 2, 3))
+  implicit def arrayOfBytesToBytes(from: Array[Byte]): Bytes = Bytes(from)
 
-    key.data should be (Array[Byte](1, 2, 3))
-  }
+  implicit def bytesToBigInt(from: Bytes): BigInt = BigInt(from)
 
-  it should "allow comparisons with Array[Byte] and itself" in {
-    (Key(Array[Byte](1, 2, 3)) `compare` Array[Byte](2, 3)) shouldBe (> (0))
-    (Key(Array[Byte](2, 3)) `compare` Array[Byte](2, 3, 4)) shouldBe (< (0))
-    (Key(Array[Byte](2, 3, 4)) `compare` Key(Array[Byte](2, 4, 4))) shouldBe (< (0))
-    (Key(Array[Byte]()) `compare` Array[Byte](0)) shouldBe (0)
-
-    (Key(Array[Byte](0, 1, 2)) `canEqual` Array[Byte](0, 1, 2)) should be (true)
-    (Key(Array[Byte]()) `canEqual` Array[Byte](0)) should be (true)
-
-    (Key(Array[Byte](0, 1, 2)) `equals` Array[Byte](0, 1, 2)) should be (true)
-    (Key(Array[Byte](0, 1, 2)) `equals` Array[Byte](1, 2)) should be (true)
-    (Key(Array[Byte](0, 1, 2)) `equals` Array[Byte](0, 2, 1, 2)) should be (false)
-  }
+  implicit def bigIntToBytes(from: BigInt): Bytes = from.toByteArray
 }

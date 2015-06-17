@@ -23,7 +23,6 @@
 package me.stojan.siddhartha.message
 
 import akka.actor.ActorRef
-import me.stojan.siddhartha.actor.Siddhartha
 import me.stojan.siddhartha.keyspace.Key
 
 case class Join()
