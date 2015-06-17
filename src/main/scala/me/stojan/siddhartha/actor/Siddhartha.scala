@@ -54,7 +54,7 @@ class Siddhartha extends Actor {
         children.foreach(_ forward dht)
       } else {
         dht match {
-          case Put(key, value) => map.put(key, value.orNull)
+          case Put(key, value) => if (value.isEmpty) { map.remove(key) } else { map.put(key, value.get) }
           case Get(key) => sender ! Value(key, map.get(key))
         }
       }
