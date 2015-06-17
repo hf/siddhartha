@@ -40,5 +40,7 @@ object Keyspace {
 
   def halve(a: Key, b: Key): (Key, Key, Key) = (a, a + (b - a) / 2, b)
 
+  def halve(keyspace: (Key, Key)): (Key, Key, Key) = halve(keyspace._1, keyspace._2)
+
   def within(key: Key, keyspace: (Key, Key)) = key >= keyspace._1 && key < keyspace._2
 }

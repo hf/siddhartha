@@ -26,4 +26,6 @@ import me.stojan.siddhartha.util.Bytes
 
 case class Key(data: Bytes) extends Ordered[Key] {
   override def compare(that: Key): Int = Bytes.comparator.compare(data, that.data)
+
+  def within(keyspace: (Key, Key)): Boolean = Keyspace.within(this, keyspace)
 }

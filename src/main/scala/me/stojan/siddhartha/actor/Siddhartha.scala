@@ -58,26 +58,27 @@ class Siddhartha extends Actor {
     })
 
     case _: Join =>
-      val halvedKeyspace = Keyspace.halve(keyspace._1, keyspace._2)
-      val childData = map.subMap(halvedKeyspace._2, halvedKeyspace._3)
+      val halvedKeyspace = Keyspace.halve(keyspace)
+      val parentKeyspace = (halvedKeyspace._1, halvedKeyspace._2)
+      val childKeyspace = (halvedKeyspace._2, halvedKeyspace._3)
 
-      sender ! Child((halvedKeyspace._2, halvedKeyspace._3), childData)
+      sender ! Child(childKeyspace, (map.subMap _).tupled(childKeyspace))
 
       // TODO: Refresh map without childData values once in a while
 
-      becomeActive((halvedKeyspace._1, halvedKeyspace._2), parent, children :+ (halvedKeyspace._2, sender))
+      becomeActive(parentKeyspace, parent, children :+ (halvedKeyspace._2, sender))
 
     case dht: DHTMessage =>
-      if (!Keyspace.within(dht.key, keyspace)) {
+      if (dht.key within keyspace) {
+        dht match {
+          case Put(key, value) => store(key, value)
+          case Get(key) => sender ! Value(key, Option(map.get(key)))
+        }
+      } else {
         if (dht.key < keyspace._1) {
           parent.foreach(_ forward dht)
         } else {
           responsibleChild(dht.key, children) forward dht
-        }
-      } else {
-        dht match {
-          case Put(key, value) => store(key, value)
-          case Get(key) => sender ! Value(key, Option(map.get(key)))
         }
       }
 
