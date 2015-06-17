@@ -20,15 +20,16 @@
  * THE SOFTWARE.
  */
 
-package me.stojan.siddhartha.message
+package me.stojan.siddhartha.test
 
-import me.stojan.siddhartha.keyspace.Key
+import akka.actor.ActorSystem
+import akka.testkit.{ImplicitSender, TestKit}
+import org.scalatest.{Matchers, BeforeAndAfterAll, FlatSpecLike}
 
-sealed trait DHTMessage {
-  def key: Key
+abstract class ActorSystemSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with FlatSpecLike with Matchers with BeforeAndAfterAll {
+  def this(name: String) = this(ActorSystem(name))
+
+  override def afterAll: Unit = {
+    TestKit.shutdownActorSystem(system)
+  }
 }
-
-case class Put(key: Key, value: Option[Array[Byte]]) extends DHTMessage
-case class Get(key: Key) extends DHTMessage
-
-case class Value(key: Key, value: Option[Array[Byte]])

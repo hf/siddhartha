@@ -22,13 +22,11 @@
 
 package me.stojan.siddhartha.message
 
+import akka.actor.ActorRef
+import me.stojan.siddhartha.actor.Siddhartha
 import me.stojan.siddhartha.keyspace.Key
 
-sealed trait DHTMessage {
-  def key: Key
-}
+case class Join()
+case class AskToJoin(siddhartha: ActorRef)
 
-case class Put(key: Key, value: Option[Array[Byte]]) extends DHTMessage
-case class Get(key: Key) extends DHTMessage
-
-case class Value(key: Key, value: Option[Array[Byte]])
+case class Child(keyspace: (Key, Key))

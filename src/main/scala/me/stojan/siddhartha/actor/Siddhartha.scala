@@ -22,27 +22,48 @@
 
 package me.stojan.siddhartha.actor
 
-import akka.actor.Actor
+import akka.actor.Actor.Receive
+import akka.actor.{ActorRef, Actor}
 import me.stojan.siddhartha.keyspace.{Key, Keyspace}
-import me.stojan.siddhartha.message.{Value, DHTMessage, Get, Put}
+import me.stojan.siddhartha.message._
 
 import scala.collection.mutable
 
 class Siddhartha extends Actor {
-  var keyspace = (Keyspace.min, Keyspace.max)
   val map = new mutable.HashMap[Key, Array[Byte]]()
 
+  var isActive = false
+
   override def receive: Receive = {
+    case AskToJoin(siddhartha: ActorRef) => siddhartha ! Join()
+    case Child(keyspace: (Key, Key)) => becomeActive(keyspace, Some(sender), Seq())
+    case _ =>
+  }
+
+  def active(keyspace: (Key, Key), parent: Option[ActorRef], children: Seq[ActorRef]): Receive = {
+    case _: Join =>
+      val halved = Keyspace.halve(keyspace._1, keyspace._2)
+
+      sender ! Child((halved._2, halved._3))
+
+      becomeActive((halved._1, halved._2), parent, children :+ sender)
+
     case dht: DHTMessage =>
       if (!Keyspace.within(dht.key, keyspace)) {
-        // TODO: Forward to another node.
+        parent.foreach(_ forward dht)
+        children.foreach(_ forward dht)
       } else {
         dht match {
-          case put: Put => map.put(put.key, put.value)
-          case get: Get => sender ! Value(get.key, map.get(get.key).get)
+          case Put(key, value) => map.put(key, value.orNull)
+          case Get(key) => sender ! Value(key, map.get(key))
         }
       }
 
     case _ =>
+  }
+
+  def becomeActive(keyspace: (Key, Key), parent: Option[ActorRef], children: Seq[ActorRef]): Unit = {
+    context.become(active(keyspace, parent, children), true)
+    isActive = true
   }
 }
