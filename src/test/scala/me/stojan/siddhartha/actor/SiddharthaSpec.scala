@@ -34,13 +34,18 @@ import scala.concurrent.duration._
 class SiddharthaSpec extends ActorSystemSpec("SiddharthaSpec") {
 
   "Siddhartha" should "activate on a Child message" in {
-    val sdhRef = TestActorRef[Siddhartha]
+    val sdhRef = system.actorOf(Props[Siddhartha])
+    val askerRef = TestProbe()
 
-    sdhRef.underlyingActor.isActive should be (false)
+    askerRef.send(sdhRef, Status("active"))
+
+    askerRef.expectMsg(Some(false))
 
     sdhRef ! Child((Keyspace.min, Keyspace.max))
 
-    sdhRef.underlyingActor.isActive should be (true)
+    askerRef.send(sdhRef, Status("active"))
+
+    askerRef.expectMsg(Some(true))
   }
 
   it should "when active, respond on Join messages" in {
@@ -48,15 +53,11 @@ class SiddharthaSpec extends ActorSystemSpec("SiddharthaSpec") {
 
     sdhRef ! Child((Keyspace.min, Keyspace.max))
 
-    sdhRef.underlyingActor.isActive should be (true)
-
     sdhRef ! Join()
 
     val halved = Keyspace.halve(Keyspace.min, Keyspace.max)
 
     expectMsg(Duration(50, MILLISECONDS), Child((halved._2, halved._3)))
-
-    sdhRef.underlyingActor.isActive should be (true)
   }
 
   it should "when not active, respond to AskToJoin messages" in {

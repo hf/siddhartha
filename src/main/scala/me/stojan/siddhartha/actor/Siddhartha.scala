@@ -32,15 +32,26 @@ import scala.collection.mutable
 class Siddhartha extends Actor {
   val map = new mutable.HashMap[Key, Bytes]()
 
-  var isActive = false
-
   override def receive: Receive = {
+    case Status(ofWhat: String) => sender ! (ofWhat match {
+      case "active" => Some(false)
+      case _ => None
+    })
+
     case AskToJoin(siddhartha: ActorRef) => siddhartha ! Join()
     case Child(keyspace: (Key, Key)) => becomeActive(keyspace, Some(sender), Seq())
     case _ =>
   }
 
   def active(keyspace: (Key, Key), parent: Option[ActorRef], children: Seq[(Key, ActorRef)]): Receive = {
+    case Status(ofWhat: String) => sender ! (ofWhat match {
+      case "active" => Some(true)
+      case "keyspace" => Some(keyspace)
+      case "parent" => Some(parent)
+      case "children" => Some(children)
+      case _ => sender ! None
+    })
+
     case _: Join =>
       val halvedKeyspace = Keyspace.halve(keyspace._1, keyspace._2)
 
@@ -67,7 +78,6 @@ class Siddhartha extends Actor {
 
   def becomeActive(keyspace: (Key, Key), parent: Option[ActorRef], children: Seq[(Key, ActorRef)]): Unit = {
     context.become(active(keyspace, parent, children), true)
-    isActive = true
   }
 
   protected def store(key: Key, value: Option[Bytes]): Unit = if (value.isEmpty) {
