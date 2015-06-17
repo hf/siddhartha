@@ -36,4 +36,20 @@ class KeyspaceSpec extends UnitSpec {
     val (a, h, b) = Keyspace.halve(Keyspace.min, Keyspace.max)
 
   }
+
+  it should "check if a key is within a keyspace" in {
+    // a - h - b
+    val (a, h, b) = Keyspace.halve(Keyspace.min, Keyspace.max)
+
+    Keyspace.within(h, (a, b)) should be (true)
+    Keyspace.within(a, (a, b)) should be (true)
+    Keyspace.within(b, (a, b)) should be (false)
+
+    // h - hh - b
+
+    val (_, hh, _) = Keyspace.halve(h, b)
+
+    Keyspace.within(hh, (h, b)) should be (true)
+    Keyspace.within(hh, (a, h)) should be (false)
+  }
 }
