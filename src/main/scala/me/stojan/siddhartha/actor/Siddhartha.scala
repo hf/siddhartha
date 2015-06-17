@@ -22,15 +22,15 @@
 
 package me.stojan.siddhartha.actor
 
+import java.util
+
 import akka.actor.{Actor, ActorRef}
 import me.stojan.siddhartha.keyspace.{Key, Keyspace}
 import me.stojan.siddhartha.message._
 import me.stojan.siddhartha.util.Bytes
 
-import scala.collection.mutable
-
 class Siddhartha extends Actor {
-  val map = new mutable.HashMap[Key, Bytes]()
+  val map = new util.TreeMap[Key, Bytes]()
 
   override def receive: Receive = {
     case Status(ofWhat: String) => sender ! (ofWhat match {
@@ -69,7 +69,7 @@ class Siddhartha extends Actor {
       } else {
         dht match {
           case Put(key, value) => store(key, value)
-          case Get(key) => sender ! Value(key, map.get(key))
+          case Get(key) => sender ! Value(key, Option(map.get(key)))
         }
       }
 
