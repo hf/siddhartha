@@ -20,23 +20,15 @@
  * THE SOFTWARE.
  */
 
-package me.stojan.siddhartha.keyspace
+package me.stojan.siddhartha.message
 
-object Keyspace {
-  val bytes = 512 / 8
+import me.stojan.siddhartha.keyspace.Key
 
-  lazy val min: Key = Array[Byte](0)
-  lazy val max: Key = {
-    val data = Array.ofDim[Byte](bytes)
-
-    for (i <- 0 until data.length) {
-      data(i) = 0xFF.toByte
-    }
-
-    data
-  }
-
-  def halve(a: Key, b: Key): (Key, Key, Key) = (a, a + (b - a) / 2, b)
-
-  def within(key: Key, keyspace: (Key, Key)) = key >= keyspace._1 && key < keyspace._2
+sealed trait DHTMessage {
+  def key: Key
 }
+
+case class Put(key: Key, value: Array[Byte]) extends DHTMessage
+case class Get(key: Key) extends DHTMessage
+
+case class Value(key: Key, value: Array[Byte])

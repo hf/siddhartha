@@ -20,23 +20,14 @@
  * THE SOFTWARE.
  */
 
-package me.stojan.siddhartha.keyspace
+package me.stojan.siddhartha.message
 
-object Keyspace {
-  val bytes = 512 / 8
+import me.stojan.siddhartha.test.UnitSpec
 
-  lazy val min: Key = Array[Byte](0)
-  lazy val max: Key = {
-    val data = Array.ofDim[Byte](bytes)
+class PutSpec extends UnitSpec {
 
-    for (i <- 0 until data.length) {
-      data(i) = 0xFF.toByte
-    }
+}
 
-    data
-  }
+class GetSpec extends UnitSpec {
 
-  def halve(a: Key, b: Key): (Key, Key, Key) = (a, a + (b - a) / 2, b)
-
-  def within(key: Key, keyspace: (Key, Key)) = key >= keyspace._1 && key < keyspace._2
 }

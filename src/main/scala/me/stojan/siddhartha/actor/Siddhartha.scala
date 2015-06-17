@@ -20,23 +20,29 @@
  * THE SOFTWARE.
  */
 
-package me.stojan.siddhartha.keyspace
+package me.stojan.siddhartha.actor
 
-object Keyspace {
-  val bytes = 512 / 8
+import akka.actor.Actor
+import me.stojan.siddhartha.keyspace.{Key, Keyspace}
+import me.stojan.siddhartha.message.{Value, DHTMessage, Get, Put}
 
-  lazy val min: Key = Array[Byte](0)
-  lazy val max: Key = {
-    val data = Array.ofDim[Byte](bytes)
+import scala.collection.mutable
 
-    for (i <- 0 until data.length) {
-      data(i) = 0xFF.toByte
-    }
+class Siddhartha extends Actor {
+  var keyspace = (Keyspace.min, Keyspace.max)
+  val map = new mutable.HashMap[Key, Array[Byte]]()
 
-    data
+  override def receive: Receive = {
+    case dht: DHTMessage =>
+      if (!Keyspace.within(dht.key, keyspace)) {
+        // TODO: Forward to another node.
+      } else {
+        dht match {
+          case put: Put => map.put(put.key, put.value)
+          case get: Get => sender ! Value(get.key, map.get(get.key).get)
+        }
+      }
+
+    case _ =>
   }
-
-  def halve(a: Key, b: Key): (Key, Key, Key) = (a, a + (b - a) / 2, b)
-
-  def within(key: Key, keyspace: (Key, Key)) = key >= keyspace._1 && key < keyspace._2
 }
