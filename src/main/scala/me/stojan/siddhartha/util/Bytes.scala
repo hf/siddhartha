@@ -33,15 +33,18 @@ object Bytes {
       require(x != null)
       require(y != null)
 
-      val (invert, a, b) = if (x.data.length >= y.data.length) { (1, x.data, y.data) }
-      else { (-1, y.data, x.data) }
+      val (invert, a, b) = if (x.data.length >= y.data.length) {
+        (1, x.data, y.data)
+      } else {
+        (-1, y.data, x.data)
+      }
 
       for (i <- 0 until (a.length - b.length)) {
-        if (a(i) != 0) { return invert }
+        if (a(i) != 0) { return (a(i) & 0xFF) * invert }
       }
 
       for (i <- (a.length - b.length) until a.length) {
-        val comparison = a(i) `compare` b(i - (a.length - b.length))
+        val comparison = (a(i) & 0xFF) - (b(i - (a.length - b.length)) & 0xFF)
         if (comparison != 0) { return comparison * invert }
       }
 

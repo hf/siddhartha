@@ -77,7 +77,7 @@ class SiddharthaSpec extends ActorSystemSpec("SiddharthaSpec") {
     expectNoMsg(Duration(100, MILLISECONDS))
   }
 
-  it should "when active, forward DHT messages to parent and children" in {
+  it should "when active, forward DHT messages to parent" in {
     val sdhProbe = TestProbe()
 
     val childRef = system.actorOf(Props[Siddhartha])
@@ -86,11 +86,41 @@ class SiddharthaSpec extends ActorSystemSpec("SiddharthaSpec") {
 
     sdhProbe.expectMsg(Duration(50, MILLISECONDS), Join())
 
-    sdhProbe.send(childRef, Child(( Key(Bytes(0, 0, 0)), Key(Bytes(1, 2, 3)) )) )
+    sdhProbe.send(childRef, Child(( Key(Bytes(1, 0, 0)), Key(Bytes(1, 2, 3)) )) )
 
-    childRef ! Get(Key(Bytes(2, 0, 0)))
+    childRef ! Get(Key(Bytes(0, 2, 0)))
 
-    sdhProbe.expectMsg(Duration(100, MILLISECONDS), Get(Key(Bytes(2, 0, 0))))
+    sdhProbe.expectMsg(Duration(100, MILLISECONDS), Get(Key(Bytes(0, 2, 0))))
+  }
+
+  it should "when active, forward DHT messages to children" in {
+    val sdhProbe = TestProbe()
+
+    val childRef = system.actorOf(Props[Siddhartha])
+
+    childRef ! AskToJoin(sdhProbe.ref)
+
+    sdhProbe.expectMsg(Duration(50, MILLISECONDS), Join())
+
+    sdhProbe.send(childRef, Child((Bytes(), Bytes(0, 200.toByte))))
+
+    val subChildRef = TestProbe()
+
+    subChildRef.send(childRef, Join())
+
+    subChildRef.expectMsg(Duration(50, MILLISECONDS), Child((Bytes(0, 100.toByte), Bytes(0, 200.toByte))))
+
+    childRef ! Get(Bytes(0, 100))
+
+    sdhProbe.expectNoMsg(Duration(100, MILLISECONDS))
+    subChildRef.expectMsg(Duration(50, MILLISECONDS), Get(Bytes(0, 100)))
+
+    childRef ! Put(Bytes(0, 199.toByte), Some(Bytes(1, 2, 3)))
+
+    sdhProbe.expectNoMsg(Duration(100, MILLISECONDS))
+    subChildRef.expectMsg(Duration(50, MILLISECONDS), Put(Bytes(0, 199.toByte), Some(Bytes(1, 2, 3))))
+
+
   }
 
   it should "when active, store and retrieve values from its own keyspace" in {

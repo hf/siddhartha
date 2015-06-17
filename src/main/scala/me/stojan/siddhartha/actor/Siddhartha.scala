@@ -50,8 +50,11 @@ class Siddhartha extends Actor {
 
     case dht: DHTMessage =>
       if (!Keyspace.within(dht.key, keyspace)) {
-        parent.foreach(_ forward dht)
-        children.foreach(_ forward dht)
+        if (dht.key < keyspace._1) {
+          parent.foreach(_ forward dht)
+        } else {
+          children.foreach(_ forward dht)
+        }
       } else {
         dht match {
           case Put(key, value) => if (value.isEmpty) { map.remove(key) } else { map.put(key, value.get) }

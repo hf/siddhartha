@@ -51,4 +51,12 @@ class BytesSpec extends UnitSpec {
     Bytes().hashCode should be (Bytes(0, 0, 0).hashCode)
     Bytes(0, 0, 1, 2, 3).hashCode should be (Bytes(0, 0, 0, 1, 2, 3).hashCode)
   }
+
+  it should "return a relative comparison value" in {
+    Bytes() `compare` Bytes(0, 1) should be (-1)
+    Bytes(0, 2) `compare` Bytes(0, 1) should be (1)
+
+    Bytes(0, 200.toByte) `compare` Bytes(0, 0, 202.toByte) should be (-2)
+    Bytes(130.toByte, 0, 200.toByte) `compare` Bytes(0, 0, 202.toByte) should be (130)
+  }
 }
