@@ -20,23 +20,11 @@
  * THE SOFTWARE.
  */
 
-package me.stojan.siddhartha.message
+package me.stojan.siddhartha
 
-import java.util
-import java.util.Collections
+import akka.actor.ActorSystem
 
-import akka.actor.ActorRef
-import me.stojan.siddhartha.keyspace.Key
-import me.stojan.siddhartha.util.Bytes
+package object system {
 
-case class Join()
-case class AskToJoin(siddhartha: ActorRef)
-
-case class Child(keyspace: (Key, Key), data: util.Map[Key, Bytes] = Collections.emptyMap())
-
-sealed trait Incarnate {
-  def siddhartha: ActorRef
+  implicit def dharmaToActorSystem(from: Dharma): ActorSystem = from.system
 }
-
-case class IncarnateTopLevel(siddhartha: ActorRef, keyspace: (Key, Key)) extends Incarnate
-case class IncarnateWithParent(siddhartha: ActorRef, parent: ActorRef) extends Incarnate

@@ -20,23 +20,43 @@
  * THE SOFTWARE.
  */
 
-package me.stojan.siddhartha.message
+package me.stojan.siddhartha.actor
 
-import java.util
-import java.util.Collections
-
-import akka.actor.ActorRef
+import akka.actor.{Actor, ActorRef, Terminated}
 import me.stojan.siddhartha.keyspace.Key
-import me.stojan.siddhartha.util.Bytes
+import me.stojan.siddhartha.message._
 
-case class Join()
-case class AskToJoin(siddhartha: ActorRef)
+class Buddha extends Actor {
+  protected var topLevel: Seq[ActorRef] = Seq()
+  protected var parented: Seq[ActorRef] = Seq()
 
-case class Child(keyspace: (Key, Key), data: util.Map[Key, Bytes] = Collections.emptyMap())
+  override def receive: Receive = {
+    case i: Incarnate => i match {
+      case IncarnateTopLevel(siddhartha: ActorRef, keyspace: (Key, Key)) =>
+        siddhartha ! Child(keyspace)
 
-sealed trait Incarnate {
-  def siddhartha: ActorRef
+        topLevel = topLevel :+ siddhartha
+
+        context.watch(siddhartha)
+
+      case IncarnateWithParent(siddhartha: ActorRef, parent: ActorRef) =>
+        siddhartha ! AskToJoin(parent)
+
+        parented = parented :+ siddhartha
+
+        context.watch(siddhartha)
+        context.watch(parent)
+    }
+
+    case Status(ofWhat: String) => sender ! (ofWhat match {
+      case "siddhartha" => Some(topLevel ++ parented)
+      case "siddhartha:toplevel" => Some(topLevel)
+      case "siddhartha:parented" => Some(parented)
+      case _ => None
+    })
+
+    case Terminated(actor: ActorRef) =>
+
+    case _ =>
+  }
 }
-
-case class IncarnateTopLevel(siddhartha: ActorRef, keyspace: (Key, Key)) extends Incarnate
-case class IncarnateWithParent(siddhartha: ActorRef, parent: ActorRef) extends Incarnate

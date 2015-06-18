@@ -20,23 +20,41 @@
  * THE SOFTWARE.
  */
 
-package me.stojan.siddhartha.message
+package me.stojan.siddhartha.system
 
-import java.util
-import java.util.Collections
-
-import akka.actor.ActorRef
+import akka.actor._
+import akka.pattern.ask
+import akka.util.Timeout
+import com.typesafe.config.Config
+import me.stojan.siddhartha.actor.{Buddha, Siddhartha}
 import me.stojan.siddhartha.keyspace.Key
-import me.stojan.siddhartha.util.Bytes
+import me.stojan.siddhartha.message.{IncarnateTopLevel, IncarnateWithParent, Status}
 
-case class Join()
-case class AskToJoin(siddhartha: ActorRef)
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
-case class Child(keyspace: (Key, Key), data: util.Map[Key, Bytes] = Collections.emptyMap())
-
-sealed trait Incarnate {
-  def siddhartha: ActorRef
+object Dharma {
+  def apply(name: String = "dharma", config: Option[Config] = None): Dharma = Dharma(ActorSystem(name, config))
 }
 
-case class IncarnateTopLevel(siddhartha: ActorRef, keyspace: (Key, Key)) extends Incarnate
-case class IncarnateWithParent(siddhartha: ActorRef, parent: ActorRef) extends Incarnate
+case class Dharma(system: ActorSystem) {
+  val buddha: ActorRef = system.actorOf(Props[Buddha], "buddha")
+
+  def createSiddhartha(parent: ActorRef): ActorRef = {
+    val siddhartha = system.actorOf(Props[Siddhartha])
+
+    buddha ! IncarnateWithParent(siddhartha, parent)
+
+    siddhartha
+  }
+
+  def createSiddhartha(keyspace: (Key, Key)): ActorRef = {
+    val siddhartha = system.actorOf(Props[Siddhartha])
+
+    buddha ! IncarnateTopLevel(siddhartha, keyspace)
+
+    siddhartha
+  }
+
+  def siddharthas(implicit timeout: Timeout = Timeout(1 second)): Future[Option[Seq[ActorRef]]] = ask(buddha, Status("siddhartha")).mapTo[Option[Seq[ActorRef]]]
+}
