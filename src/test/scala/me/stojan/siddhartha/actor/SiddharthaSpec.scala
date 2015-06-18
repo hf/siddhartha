@@ -151,7 +151,7 @@ class SiddharthaSpec extends ActorSystemSpec("SiddharthaSpec") {
 
     sdhProbe.send(childRef, Put(Key(Bytes(2, 0, 0)), Some(Bytes(4, 5, 6))))
 
-    sdhProbe.expectNoMsg(Duration(100, MILLISECONDS))
+    sdhProbe.expectMsg(Duration(100, MILLISECONDS), Value(Key(Bytes(2, 0, 0)), Some(Bytes(4, 5, 6))))
 
     sdhProbe.send(childRef, Get(Key(Bytes(2, 0, 0))))
 

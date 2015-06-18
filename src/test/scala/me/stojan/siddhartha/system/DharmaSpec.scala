@@ -22,19 +22,17 @@
 
 package me.stojan.siddhartha.system
 
-import akka.actor.{ActorRef, ActorSystem}
 import me.stojan.siddhartha.keyspace.Keyspace
-import me.stojan.siddhartha.message.Status
 import me.stojan.siddhartha.test.UnitSpec
+import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{BeforeAndAfterEach, BeforeAndAfterAll}
 
 class DharmaSpec extends UnitSpec with BeforeAndAfterEach with ScalaFutures {
 
   var dharma: Dharma = null
 
   override def beforeEach() = {
-    dharma = Dharma()
+    dharma = Dharma("DharmaSpec")
   }
 
   override def afterEach() {

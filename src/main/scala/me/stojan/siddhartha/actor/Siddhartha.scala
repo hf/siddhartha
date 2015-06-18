@@ -71,7 +71,7 @@ class Siddhartha extends Actor {
     case dht: DHTMessage =>
       if (dht.key within keyspace) {
         dht match {
-          case Put(key, value) => store(key, value)
+          case Put(key, value) => sender ! store(key, value)
           case Get(key) => sender ! Value(key, Option(map.get(key)))
         }
       } else {
@@ -89,10 +89,14 @@ class Siddhartha extends Actor {
     context.become(active(keyspace, parent, children), true)
   }
 
-  protected def store(key: Key, value: Option[Bytes]): Unit = if (value.isEmpty) {
-    map.remove(key)
-  } else {
-    map.put(key, value.get)
+  protected def store(key: Key, value: Option[Bytes]): Value = {
+    if (value.isEmpty) {
+      map.remove(key)
+    } else {
+      map.put(key, value.get)
+    }
+
+    Value(key, value)
   }
 
   protected def responsibleChild(key: Key, children: Seq[(Key, ActorRef)]): ActorRef = {

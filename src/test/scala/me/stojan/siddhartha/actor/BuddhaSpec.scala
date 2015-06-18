@@ -22,8 +22,8 @@
 
 package me.stojan.siddhartha.actor
 
-import akka.actor.{PoisonPill, ActorRef, Props}
-import akka.testkit.{TestProbe, TestActorRef}
+import akka.actor.{ActorRef, PoisonPill, Props}
+import akka.testkit.TestProbe
 import me.stojan.siddhartha.keyspace.Keyspace
 import me.stojan.siddhartha.message._
 import me.stojan.siddhartha.test.ActorSystemSpec
