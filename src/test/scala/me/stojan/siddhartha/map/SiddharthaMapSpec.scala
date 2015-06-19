@@ -29,6 +29,7 @@ import me.stojan.siddhartha.test.UnitSpec
 import me.stojan.siddhartha.util.Bytes
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{Millis, Seconds, Span}
 
 import scala.concurrent.duration._
 
@@ -38,6 +39,9 @@ class SiddharthaMapSpec extends UnitSpec with ScalaFutures with BeforeAndAfterEa
 
   implicit val timeout = Timeout(10 seconds)
   import scala.concurrent.ExecutionContext.Implicits.global
+
+  implicit val defaultPatience =
+    PatienceConfig(timeout =  Span(20, Seconds), interval = Span(30, Millis))
 
   override def beforeEach(): Unit = {
     dharma = Dharma("SiddharthaMapSpec")
@@ -52,8 +56,8 @@ class SiddharthaMapSpec extends UnitSpec with ScalaFutures with BeforeAndAfterEa
     val sdh = dharma.createSiddhartha((Keyspace.min, Keyspace.max))
     val map = SiddharthaMap(sdh)
 
-    whenReady(map.putFuture( Key(Bytes(0, 1, 2, 3)), Some(Bytes(0, 1, 2, 3)) )) { result =>
-      result should be (Some(Bytes(0, 1, 2, 3)))
+    whenReady(map.put( Key(Bytes(0, 1, 2, 3)), Some(Bytes(0, 1, 2, 3)) )) { result =>
+      result.value should be (Some(Bytes(0, 1, 2, 3)))
     }
   }
 
@@ -61,11 +65,11 @@ class SiddharthaMapSpec extends UnitSpec with ScalaFutures with BeforeAndAfterEa
     val sdh = dharma.createSiddhartha((Keyspace.min, Keyspace.max))
     val map = SiddharthaMap(sdh)
 
-    whenReady(map.putFuture( Key(Bytes(0, 1, 2, 3)), Some(Bytes(0, 1, 2, 3)) )) { result =>
-      result should be (Some(Bytes(0, 1, 2, 3)))
+    whenReady(map.put( Key(Bytes(0, 1, 2, 3)), Some(Bytes(0, 1, 2, 3)) )) { result =>
+      result.value should be (Some(Bytes(0, 1, 2, 3)))
 
-      whenReady(map.removeFuture(Key(Bytes(0, 1, 2, 3)))) { result =>
-        result should be (None)
+      whenReady(map.remove(Key(Bytes(0, 1, 2, 3)))) { result =>
+        result.value should be (None)
       }
     }
   }
@@ -74,18 +78,18 @@ class SiddharthaMapSpec extends UnitSpec with ScalaFutures with BeforeAndAfterEa
     val sdh = dharma.createSiddhartha((Keyspace.min, Keyspace.max))
     val map = SiddharthaMap(sdh)
 
-    whenReady(map.getFuture(Key(Bytes(0, 1, 2, 3)))) { result =>
-      result should be(None)
+    whenReady(map.get(Key(Bytes(0, 1, 2, 3)))) { result =>
+      result.value should be(None)
 
-      whenReady(map.putFuture( Key(Bytes(0, 1, 2, 3)), Some(Bytes(0, 1, 2, 3)) )) { result =>
+      whenReady(map.put( Key(Bytes(0, 1, 2, 3)), Some(Bytes(0, 1, 2, 3)) )) { result =>
 
-        whenReady(map.getFuture( Key(Bytes(0, 1, 2, 3)) )) { result =>
-          result should be (Some(Bytes(0, 1, 2, 3)))
+        whenReady(map.get( Key(Bytes(0, 1, 2, 3)) )) { result =>
+          result.value should be (Some(Bytes(0, 1, 2, 3)))
 
-          whenReady(map.removeFuture( Key(Bytes(0, 1, 2, 3)) )) { result =>
+          whenReady(map.remove( Key(Bytes(0, 1, 2, 3)) )) { result =>
 
-            whenReady(map.getFuture( Key(Bytes(0, 1, 2, 3)) )) { result =>
-              result should be (None)
+            whenReady(map.get( Key(Bytes(0, 1, 2, 3)) )) { result =>
+              result.value should be (None)
             }
           }
         }

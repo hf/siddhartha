@@ -30,35 +30,14 @@ import me.stojan.siddhartha.keyspace.Key
 import me.stojan.siddhartha.message.{Get, Put, Value}
 import me.stojan.siddhartha.util.Bytes
 
-import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 
 case class SiddharthaMap(siddhartha: ActorRef) {
 
-  def getFuture(key: Key)(implicit timeout: Timeout, ec: ExecutionContext): Future[Option[Bytes]] = ask(siddhartha, Get(key)).mapTo[Value].map(_.value)
+  def get(key: Key)(implicit timeout: Timeout, ec: ExecutionContext): Future[Value] = ask(siddhartha, Get(key)).mapTo[Value]
 
-  def putFuture(key: Key, value: Option[Bytes])(implicit timeout: Timeout, ec: ExecutionContext): Future[Option[Bytes]] = ask(siddhartha, Put(key, value)).mapTo[Value].map(_.value)
+  def put(key: Key, value: Option[Bytes])(implicit timeout: Timeout, ec: ExecutionContext): Future[Value] = ask(siddhartha, Put(key, value)).mapTo[Value]
 
-  def removeFuture(key: Key)(implicit timeout: Timeout, ec: ExecutionContext): Future[Option[Bytes]] = putFuture(key, None)
+  def remove(key: Key)(implicit timeout: Timeout, ec: ExecutionContext): Future[Value] = put(key, None)
 
-  def toMap(implicit timeout: Timeout, ec: ExecutionContext): Map[Key, Bytes] = new Map[Key, Bytes] {
-
-    override def get(key: Key): Option[Bytes] = {
-      Await.result(getFuture(key), Duration.Inf)
-    }
-
-    override def +[B1 >: Bytes](kv: (Key, B1)): Map[Key, B1] = {
-      Await.ready(putFuture(kv._1, Option(kv._2.asInstanceOf[Bytes])), Duration.Inf)
-
-      this
-    }
-
-    override def -(key: Key): Map[Key, Bytes] = {
-      Await.ready(removeFuture(key), Duration.Inf)
-
-      this
-    }
-
-    override def iterator: Iterator[(Key, Bytes)] = throw new UnsupportedOperationException("SiddharthaMap does not support iteration.")
-  }
 }
